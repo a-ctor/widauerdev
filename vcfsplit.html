@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vcf-split</title>
+</head>
+<body>
+    <h1>VCF Splitter</h1>
+    <p>Split a VCF file into multiple VCF files</p>
+    <p>Just drag and drop a file on the page or choose it via picker below.</p>
+    <input id="fileInput" type="file" value="here" accept=".vcf,text/vcard" multiple="false" />
+    <script src="crc32.js"></script>
+    <script src="save.js"></script>
+    <script src="zip.js"></script>
+    <script>
+        Uint8Array.prototype.indexOf = function(data, index) {
+            if (data.length === 0)
+                throw "Search array cannot be empty.";
+            if (index < 0)
+                return -1;
+
+            let j = 0;
+            for (let i = index || 0; i < this.length; i++) {
+                if (this[i] === data[j]) {
+                    j++;
+                    if (data.length == j)
+                        return i - j + 1;
+                } else {
+                    j = 0;
+                }
+            }
+
+            return -1;
+        }
+        
+        const endMarker = [0x45, 0x4E, 0x44, 0x3A, 0x56, 0x43, 0x41, 0x52, 0x44];
+        const nameMarker = [0x0A, 0x4E, 0x3A];
+        const newlineMarker = [0x0A];
+        
+        const utf8Encoder = new TextEncoder();
+        const utf8Decoder = new TextDecoder();
+
+        async function parseFile(file) {
+            const bytes = new Uint8Array(await file.arrayBuffer());
+            const files = [];
+
+            const usedFileNames = new Set();
+            usedFileNames.add("");
+
+            let from = 0, to = 0;
+            while ((to = bytes.indexOf(endMarker, from)) !== -1) {
+                to += endMarker.length;
+
+                const fileData = bytes.slice(from, to);
+
+                // Try to determine the file name
+                let name = "";
+                const nameStart = fileData.indexOf(nameMarker);
+                if (nameStart !== -1) {
+                    const nameEnd = fileData.indexOf(newlineMarker, nameStart + nameMarker.length);
+                    if (nameEnd !== -1) {
+                        const nameUnescaped = utf8Decoder.decode(fileData.slice(nameStart + nameMarker.length, nameEnd)).trim();
+                        name = nameUnescaped.replace(/[^a-z0-9]/gi, "_");
+                        name = name.replace(/_{2,}/g, "_");
+                        name = name.replace(/_$/g, "");
+                    }
+                }
+
+                // Make sure the filename is unique
+                if (usedFileNames.has(name)) {
+                    let originalName = name;
+
+                    let i = 1;
+                    do {
+                        i++;
+                        name = originalName + i;
+                    } while (usedFileNames.has(name));
+                }
+                usedFileNames.add(name);
+                
+                name = name + ".vcf";
+                files.push({
+                    name,
+                    nameData: utf8Encoder.encode(name),
+                    fileData
+                });
+                
+                // Skip newline
+                if (bytes[to] === 0x0D)
+                    to++;
+                if (bytes[to] === 0x0A)
+                    to++;
+
+                from = to;
+            }
+
+            return files;
+        }
+
+        const fileInput = document.getElementById("fileInput");
+        fileInput.addEventListener("change", async ev => {
+            const files = fileInput.files;
+            if (files.length === 0)
+                return;
+
+            const parts = await parseFile(files[0]);
+            console.info(parts);
+
+            const zip = createZip(parts);
+
+            saveAs(zip, "results.zip", "application/zip");
+
+            fileInput.value = null;
+        })
+    </script>
+</body>
+</html>
