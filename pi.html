@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PI</title>
+  <style>
+    html {
+      background-color: #0D4B76;
+      overflow: hidden;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    #picontainer {
+      color: white;
+      font: 15rem Arial;
+      margin: 0 auto;
+      width: 100%;
+      overflow: hidden;
+      direction: rtl;
+      text-overflow: clip;
+    }
+
+    #pi {
+
+      text-align: right;
+      user-select: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="picontainer">
+    <label id="pi">3.141</label><br>
+    score: <label id="score">0</label>
+  </div>
+</body>
+<script>
+  const piLabel = document.getElementById("pi");
+  const scoreLabel = document.getElementById("score");
+  const pi = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384";
+  let position = 5, correct = true, score = 0;
+  window.addEventListener("keypress", ev => {
+    if (ev.key === "r") {
+      piLabel.innerText = "3.141";
+      scoreLabel.innerText = "0";
+      position = 5;
+      correct = true;
+      return;
+    }
+
+    if (parseInt(ev.key) === NaN)
+      return
+
+    if (ev.key !== pi[position]) {
+      correct = false;
+      return;
+    }
+
+    piLabel.innerText += ev.key;
+    position++;
+
+    if (correct) {
+      score++;
+      scoreLabel.innerText = score;
+    }
+  });
+</script>
+
+</html>
