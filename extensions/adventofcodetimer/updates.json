@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "adventofcodetimer@widauer.dev": {
+      "updates": [
+        {
+          "version": "0.1",
+          "update_link": "https://widauer.dev/extensions/adventofcodetimer/advent_of_code_timer-0.1-fx.xpi"
+        }
+      ]
+    }
+  }
+}
