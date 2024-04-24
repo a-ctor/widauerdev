@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Weekdays</title>
+</head>
+<body>
+    <p>
+        Have you ever wondered what weekdays your birthdays fell on?
+    </p>
+    <p>
+        No? Well me neither. But if you ever want to know, here you go:
+    </p>
+    <form>
+        <label for="bd">Your birthday:</label>
+        <input id="bd" type="date" placeholder="Your Birthday" required />
+        <button>SHOW ME</button>
+    </form>
+    <div id="results">
+    </div>
+    <script>
+        document.querySelector("form").addEventListener("submit", ev => {
+            ev.preventDefault();
+
+            const bdInput = document.getElementById("bd");
+            const results = document.getElementById("results");
+            results.innerHTML = "";
+
+            const birthday = new Date(bdInput.valueAsNumber);
+
+            let weekdayOccurences = [0, 0, 0, 0, 0, 0, 0];
+            const weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+            let i = 0;
+            let date = birthday;
+            const birthdayList = document.createElement("ul");
+            while (date.getFullYear() <= new Date().getFullYear()) {
+                const listItem = document.createElement("li");
+                listItem.innerText = i + ": " + date.toLocaleDateString(undefined, {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                });
+                birthdayList.appendChild(listItem);
+                weekdayOccurences[date.getDay()] += 1;
+
+                i += 1;
+                date = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate());
+            }
+
+            const weekdayAggregation = document.createElement("ul");
+            for (let i = 0; i < weekdayOccurences.length; i++) {
+                const listItem = document.createElement("li");
+                listItem.innerText = `${weekdayNames[i]}: ${weekdayOccurences[i]} times`;
+                weekdayAggregation.appendChild(listItem);
+            }
+
+            results.appendChild(document.createElement("hr"));
+
+            results.appendChild(document.createTextNode("Birthday occurances per weekday:"))
+            results.appendChild(weekdayAggregation);
+
+            results.appendChild(document.createTextNode("All your birthdays:"))
+            results.appendChild(birthdayList);
+        });
+    </script>
+</body>
+</html>
